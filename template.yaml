@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-layer-msteams-python
+
+  Sample SAM Template for lambda-layer-msteams-python
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  HealthEventFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: awshealth2teams/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Layers:
+        - !Ref MSTeamsLayer
+      Events:
+        AWSHealthEvent:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+              - aws.health
+  MSTeamsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: msteams-lambda-dependencies
+      Description: Dependencies for doing msteams requests
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - python3.7
+      LicenseInfo: 'Apache-2.0'
+      RetentionPolicy: Retain
+
+Outputs:
+  HealthEventFunction:
+    Description: "AWS Health Event to MS Teams Function ARN"
+    Value: !GetAtt HealthEventFunction.Arn
+  HealthEventFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HealthEventFunctionRole.Arn
