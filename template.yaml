@@ -5,18 +5,34 @@ Description: >
 
   Sample SAM Template for lambda-layer-msteams-python
 
+Parameters:
+  WebHookParam:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: TeamsChannel
+
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 3
 
 Resources:
+  MSTeamsCWENotifications:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.7
+      Handler: cwe_notification.lambda_handler
+      CodeUri: dependencies/python/
+
   HealthEventFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: awshealth2teams/
       Handler: app.lambda_handler
       Runtime: python3.7
+      Environment:
+        Variables:
+          MSTEAMS_WEBHOOK_URL: !Ref WebHookParam
       Layers:
         - !Ref MSTeamsLayer
       Events:
@@ -29,13 +45,14 @@ Resources:
   MSTeamsLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: msteams-lambda-dependencies
-      Description: Dependencies for doing msteams requests
-      ContentUri: dependencies/
+      LayerName: MSTeamsCWENotifications
+      Description: Dependencies for doing MS Teams requests
+      ContentUri: ./.aws-sam/build/MSTeamsCWENotifications/
       CompatibleRuntimes:
         - python3.7
       LicenseInfo: 'Apache-2.0'
       RetentionPolicy: Retain
+    DependsOn: MSTeamsCWENotifications
 
 Outputs:
   HealthEventFunction:
