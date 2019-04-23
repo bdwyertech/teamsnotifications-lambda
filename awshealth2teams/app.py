@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("/opt")
+
 import logging
 import pymsteams
 import os
