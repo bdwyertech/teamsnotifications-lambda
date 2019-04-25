@@ -5,6 +5,7 @@ sys.path.append("/opt")
 import logging
 import pymsteams
 import os
+import event_images as img
 
 # import requests
 
@@ -13,6 +14,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 webhook_url = os.environ.get("MSTEAMS_WEBHOOK_URL")
+
 
 def lambda_handler(event, context):
     logger.info('Event: {}'.format(event))
@@ -31,6 +33,7 @@ def lambda_handler(event, context):
     healthevent_section.addFact("Region", event['region'])
     healthevent_section.addFact("Started on", event_detail['startTime'])
     healthevent_section.addFact("Ended on", event_detail['endTime'])
+    healthevent_section.activityImage(img.health)
 
     notification.addSection(healthevent_section)
     notification.printme()
