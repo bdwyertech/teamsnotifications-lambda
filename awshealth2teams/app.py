@@ -13,7 +13,9 @@ import event_images as img
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-webhook_url = os.environ.get("MSTEAMS_WEBHOOK_URL")
+WEBHOOK_URL = os.environ.get("MSTEAMS_WEBHOOK_URL")
+# Notify on SNS topic or CWE Event
+NOTIFICATION_TYPE = os.environ.get("NOTIFICATION_TYPE")
 
 
 def lambda_handler(event, context):
