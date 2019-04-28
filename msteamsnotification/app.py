@@ -16,12 +16,12 @@ logger.setLevel(logging.INFO)
 
 WEBHOOK_URL = os.getenv("MSTEAMS_WEBHOOK_URL", "none")
 # Notify on SNS topic or CWE Event
-NOTIFICATION_TYPE = os.getenvb("NOTIFICATION_TYPE", "cwe").lower()
+NOTIFICATION_TYPE = os.getenv("NOTIFICATION_TYPE", "cwe").lower()
 
 
 def lambda_handler(event, context):
     logger.info('Event: {}'.format(event))
-    
+
     if WEBHOOK_URL == "none":
         logger.error("Webhook not defined!")
         return {

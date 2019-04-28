@@ -175,10 +175,10 @@ By default, this command writes built artifacts to `.aws-sam/build` folder.
 All commands used throughout this document
 
 ```bash
-# Generate event.json via generate-event command
+healthevent.json
 sam local generate-event apigateway aws-proxy > event.json
 
-# Invoke function locally with event.json as an input
+healthevent.json
 sam local invoke HelloWorldFunction --event event.json
 
 # Run API Gateway locally

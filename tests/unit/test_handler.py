@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from awshealth2teams import app
+from msteamsnotification import app
 
 
 @pytest.fixture()
