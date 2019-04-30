@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  lambda-layer-msteams-python
+  Notification Lambda for MS Teams
 
-  Sample SAM Template for lambda-layer-msteams-python
+  This lambda will notify a teams channel when a certain cloudwatch event or SNS message is generated.
 
 Parameters:
   WebHookParam:
@@ -31,8 +31,14 @@ Resources:
           Type: CloudWatchEvent
           Properties:
             Pattern:
-              source:
+              detail-type:
               - aws.health
+        SigninEvent:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              detail-type:
+                - AWS Console Sign In via CloudTrail
 Outputs:
   MSTeamsNotifications:
     Description: "AWS Health Event to MS Teams Function ARN"

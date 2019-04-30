@@ -3,9 +3,7 @@ import sys
 sys.path.append("/opt")
 
 import logging
-import pymsteams
 import os
-import event_images as img
 import cwe
 
 # import requests
@@ -29,9 +27,11 @@ def lambda_handler(event, context):
         }
 
     if NOTIFICATION_TYPE == "cwe":
-        cwe.notification(WEBHOOK_URL, event["source"], event["detail-type"], event["detail"])
+        notification = cwe.CloudWatchEvent(event)
     if NOTIFICATION_TYPE == "sns":
         pass
+
+    notification.deliver_to_msteams_channel(WEBHOOK_URL)
 
     # You must create the connectorcard object with the Microsoft Webhook URL
     # notification = pymsteams.connectorcard(webhook_url)

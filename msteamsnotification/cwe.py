@@ -1,71 +1,79 @@
 import event_images
 import pymsteams
 import json
+import json_util
+
 
 class CloudWatchEvent:
     def __init__(self, event):
         self.title = event["detail-type"]
-        pass
+        self.account_id = event["account"]
+        self.region = event["region"]
+        self.resources = event["resources"]
 
-    def deliver_to_channels(self, webhook_urls):
-        pass
-
-def notification(webhook_url, source, detail_type, event_detail):
-    '''
-        Entry function for all events
-
-        Supported Events:
-            - AWS Console Signins
-            - GuardDuty Findings
-            - Health Events
-            - Codepipeline execution changes
-    '''
-    cwe_notification = pymsteams.connectorcard(webhook_url)
-    cwe_notification.title(detail_type)
-    cwe_notification.summary(f"{source}: {detail_type}")
-
-    if source == "aws.signin1":
-        notification_section = signin_notification(detail_type, event_detail)
-    elif source == "aws.health1":
-        notification_section = health_notification(detail_type, event_detail)
-    elif source == "aws.guardduty1":
-        notification_section = guardduty_notification(detail_type, event_detail)
-    elif source == "aws.codepipeline1":
-        notification_section = codepipeline_notification(detail_type, event_detail)
-    else:
-        notification_section = default_notification(detail_type, event_detail)
-
-    cwe_notification.addSection(notification_section)
-
-    cwe_notification.send()
-
-
-def default_notification(detail_type, event_detail):
-    section = pymsteams.cardsection()
-    parse_facts(details=event_detail, section=section)
-
-    return section
-
-
-def signin_notification(detail_type, event_detail):
-    pass
-
-
-def health_notification(detail_type, event_detail):
-    pass
-
-
-def guardduty_notification(detail_type, event_detail):
-    pass
-
-
-def codepipeline_notification(detail_type, event_detail):
-    pass
-
-
-def parse_facts(details, section, keys=None):
-    for detail in details:
-        if type(detail) is str:
-            section.addFact(detail, details[detail])
+        if event["source"] in ["aws.health", "aws.signin", "aws.codepipeline"]:
+            # This will parse the details we want
+            self._parse_details(event["detail"], event["source"])
         else:
-            parse_facts(details[detail])
+            # We take everything and flatten it a single level
+            self.data = flatten_json(event["detail"])
+
+    def _parse_details(self, event_detail, event_source):
+        data = {}
+
+        if event_source == "aws.health":
+            self.title = f"{event_detail['service']} - {event_detail['eventTypeCode']} ({event_detail['eventTypeCategory']})"
+            self.subtitle = f"{event_detail['eventArn']}"
+            self.image = event_images.health
+            self.data = {
+                "Started On": event_detail['startTime'],
+                "Ended On": event_detail['endTime'],
+                "description": fetch_translation(event_detail['eventDescription'], 'en_US')['latestDescription']
+            }
+        elif event_source == "aws.signin":
+            self.title = f"{event_detail['eventName']} :: {event_detail['awsRegion']} : {event_detail['userIdentity']['accountId']} - {event_detail['responseElements']['ConsoleLogin']}"
+            self.subtitle = f"{event_detail['eventTime']}"
+            self.image = event_images.signin
+            self.data = {
+                "identity-type": event_detail['userIdentity']['type'],
+                "identity-principal-id": event_detail['userIdentity']['principalId'],
+                "identity-principal-arn": event_detail['userIdentity']['arn'],
+                "source-ip": event_detail['sourceIPAddress'],
+                "user-agent": event_detail['userAgent'],
+                "mfa-user": event_detail['additionalEventData']['MFAUsed']
+            }
+        # elif event_source == "aws.guardduty":
+        #     self.title = f""
+        #     self.subtitle = f""
+        #     self.image = event_images.signin
+        #     self.data = {}
+        # elif event_source == "aws.codepipeline":
+        #     self.title = f""
+        #     self.subtitle = f""
+        #     self.image = event_images.signin
+        #     self.data = {}
+
+    def deliver_to_msteams_channel(self, channel_url):
+        notification = pymsteams.connectorcard(channel_url)
+        notification.title(self.title)
+        notification.summary(f"{self.title} - {self.subtitle}")
+        section = pymsteams.cardsection()
+        section.activityTitle(self.subtitle)
+        section.activityImage(self.image)
+        for key, value in self.data.items():
+            section.addFact(key, value)
+        notification.addSection(section)
+        notification.printme()
+        notification.send()
+
+    # NotYetImplemented
+    #def deliver_to_slack_channels(self, webhook_urls):
+    #    pass
+
+
+def fetch_translation(lang_list, lang):
+    for language_object in lang_list:
+        if language_object['language'] == lang:
+            return language_object
+
+    return lang_list[0]
