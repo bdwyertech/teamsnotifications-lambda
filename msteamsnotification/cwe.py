@@ -42,16 +42,6 @@ class CloudWatchEvent:
                 "user-agent": event_detail['userAgent'],
                 "mfa-user": event_detail['additionalEventData']['MFAUsed']
             }
-        # elif event_source == "aws.guardduty":
-        #     self.title = f""
-        #     self.subtitle = f""
-        #     self.image = event_images.signin
-        #     self.data = {}
-        # elif event_source == "aws.codepipeline":
-        #     self.title = f""
-        #     self.subtitle = f""
-        #     self.image = event_images.signin
-        #     self.data = {}
 
     def deliver_to_msteams_channel(self, channel_url):
         notification = pymsteams.connectorcard(channel_url)
