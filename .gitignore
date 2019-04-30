@@ -252,3 +252,4 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
 
 var-files/*.json
+packaged.yaml
